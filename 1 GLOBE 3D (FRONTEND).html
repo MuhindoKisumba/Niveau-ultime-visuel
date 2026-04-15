@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cyber Attack Globe</title>
+<script src="https://unpkg.com/three@0.152.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three-globe"></script>
+</head>
+<body style="margin:0; overflow:hidden;">
+
+<div id="globeViz"></div>
+
+<script>
+const Globe = new ThreeGlobe()
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .arcsData([])
+    .arcColor(() => ['red','orange','green'])
+    .arcAltitude(0.2)
+    .arcStroke(1);
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.add(Globe);
+
+const camera = new THREE.PerspectiveCamera();
+camera.position.z = 400;
+
+function animate() {
+    requestAnimationFrame(animate);
+    Globe.rotation.y += 0.001;
+    renderer.render(scene, camera);
+}
+animate();
+
+// LOAD DATA
+function loadData() {
+    fetch("http://localhost:5000/map")
+    .then(res => res.json())
+    .then(data => {
+        Globe.arcsData(data.map(d => ({
+            startLat: d.from[0],
+            startLng: d.from[1],
+            endLat: d.to[0],
+            endLng: d.to[1],
+            color: d.score > 80 ? "red" : "orange"
+        })));
+    });
+}
+
+setInterval(loadData, 5000);
+</script>
+
+</body>
+</html>
